@@ -5,7 +5,7 @@ this is for your own reference and viva prep, not a report.
 
 | # | Practical | Status | Date | Notes |
 |---|-----------|--------|------|-------|
-| 1 | React components + props | Not started | | |
+| 1 | React components + props | Done | 2026-08-13 | Header, About, Skills, Footer; props: name+themeColor→Header, skillList→Skills |
 | 2 | Routing + useState | Not started | | |
 | 3 | REST API consumption | Not started | | |
 | 4 | Express REST API | Not started | | |
