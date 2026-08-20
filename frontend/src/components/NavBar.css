@@ -1,0 +1,31 @@
+.nav {
+  background: #f3f4f6;
+  padding: 0.5rem 1rem;
+}
+.nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+.nav a {
+  text-decoration: none;
+  color: #1f2937;
+}
+.nav li.active a {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.nav-actions {
+  margin-left: auto;
+}
+.theme-toggle {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
