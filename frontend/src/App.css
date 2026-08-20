@@ -8,12 +8,22 @@
   --bg: #ffffff;
   --text: #111827;
   --muted: #6b7280;
+  --nav-bg: #f3f4f6;
+  --nav-text: #111827;
+  --toggle-bg: #ffffff;
+  --toggle-text: #111827;
+  --toggle-border: #d1d5db;
 }
 
 [data-theme='dark'] {
   --bg: #0f172a;
   --text: #e6eef8;
   --muted: #94a3b8;
+  --nav-bg: #0b1220;
+  --nav-text: #e6eef8;
+  --toggle-bg: #111827;
+  --toggle-text: #e6eef8;
+  --toggle-border: #374151;
 }
 
 .app-root {

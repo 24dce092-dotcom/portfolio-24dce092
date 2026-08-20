@@ -1,5 +1,6 @@
 .nav {
-  background: #f3f4f6;
+  background: var(--nav-bg);
+  color: var(--nav-text);
   padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
@@ -13,7 +14,7 @@
 }
 .nav a {
   text-decoration: none;
-  color: #1f2937;
+  color: var(--nav-text);
 }
 .nav li.active a {
   font-weight: 600;
@@ -24,10 +25,13 @@
   margin-left: auto;
 }
 .theme-toggle {
-  background: transparent;
-  border: 1px solid #d1d5db;
-  padding: 4px 8px;
-  border-radius: 6px;
+  background: var(--toggle-bg);
+  color: var(--toggle-text);
+  border: 1px solid var(--toggle-border);
+  padding: 6px 10px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
