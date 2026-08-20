@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import Spinner from '../components/Spinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const API = import.meta.env.VITE_API_BASE || '/api';
 
@@ -91,13 +93,8 @@ export default function Projects() {
             <button type="submit">Create</button>
           </form>
 
-          {loading && <p>Loading tasks…</p>}
-          {error && (
-            <div>
-              <p style={{ color: 'red' }}>Error: {error}</p>
-              <button onClick={fetchTasks}>Retry</button>
-            </div>
-          )}
+          {loading && <Spinner />}
+          {error && <ErrorMessage message={error} onRetry={fetchTasks} />}
 
           {!loading && !error && (
             <ul>
@@ -120,13 +117,8 @@ export default function Projects() {
             <button onClick={() => fetchRepos(githubUser)}>Fetch Repos</button>
           </div>
 
-          {reposLoading && <p>Loading repositories…</p>}
-          {reposError && (
-            <div>
-              <p style={{ color: 'red' }}>Error: {reposError}</p>
-              <button onClick={() => fetchRepos(githubUser)}>Retry</button>
-            </div>
-          )}
+          {reposLoading && <Spinner />}
+          {reposError && <ErrorMessage message={reposError} onRetry={() => fetchRepos(githubUser)} />}
 
           {!reposLoading && !reposError && repos.length > 0 && (
             <>
