@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const API = 'http://localhost:5000/api';
+const API = 'http://localhost:5001/api';
 
 export default function Projects() {
   const [tasks, setTasks] = useState([]);
