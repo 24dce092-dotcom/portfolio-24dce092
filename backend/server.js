@@ -6,6 +6,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 const taskRoutes = require('./routes/tasks');
 const authRoutes = require('./routes/auth');
+const aiRoutes = require('./routes/ai');
 require('./listeners');
 
 const app = express();
@@ -38,6 +39,7 @@ function requireJsonContent(req, res, next) {
 
 app.use('/api/tasks', requireJsonContent, taskRoutes);
 app.use('/api/auth', requireJsonContent, authRoutes);
+app.use('/api/ai', requireJsonContent, aiRoutes);
 
 // Serve frontend production build if available
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');

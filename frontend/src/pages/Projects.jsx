@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
 import AuthPanel from '../components/AuthPanel';
-import { createTask, deleteTask, getTasks, updateTask } from '../api';
+import { createTask, deleteTask, generateDescription, getTasks, updateTask } from '../api';
 
 export default function Projects() {
   const [mode, setMode] = useState('tasks'); // 'tasks' | 'repos'
@@ -16,6 +16,8 @@ export default function Projects() {
   const [priority, setPriority] = useState('medium');
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -62,6 +64,18 @@ export default function Projects() {
       })
       .catch((err) => setActionError(err.message || 'Create error'))
       .finally(() => setSaving(false));
+  }
+
+  function handleGenerateDescription() {
+    setAiLoading(true);
+    setAiMessage(null);
+    generateDescription(title)
+      .then((result) => {
+        if (result.description) setDescription(result.description);
+        setAiMessage(result.message || 'AI suggestion added. Review it before saving.');
+      })
+      .catch((err) => setAiMessage(err.message || 'AI suggestion unavailable'))
+      .finally(() => setAiLoading(false));
   }
 
   function beginEdit(task) {
@@ -149,6 +163,9 @@ export default function Projects() {
           <form onSubmit={handleCreate} style={{ marginBottom: 16 }}>
             <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required style={{ padding: 6, marginRight: 8 }} />
             <input placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} style={{ padding: 6, marginRight: 8 }} />
+            <button type="button" onClick={handleGenerateDescription} disabled={aiLoading || title.trim().length < 2} style={{ marginRight: 8 }}>
+              {aiLoading ? 'Generating...' : 'Generate description'}
+            </button>
             <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ padding: 6, marginRight: 8 }}>
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -156,6 +173,7 @@ export default function Projects() {
             </select>
             <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Create'}</button>
           </form>
+          {aiMessage && <p><small>AI-generated suggestion: review and edit before saving. {aiMessage}</small></p>}
 
           {loading && <Spinner />}
           {error && <ErrorMessage message={error} onRetry={fetchTasks} />}

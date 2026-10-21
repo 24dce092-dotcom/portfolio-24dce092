@@ -36,7 +36,7 @@ Compose, CI/CD) can reference both in one place.
 | 10 | EventEmitter async | `backend/` | `p10-done` | ✅ Done |
 | 11 | Docker + Compose | root, both | `p11-done` | ✅ Done |
 | 12 | CI/CD (GitHub Actions) | `.github/workflows/` | `p12-done` | ✅ Done |
-| 13 | AI API integration | both | `p13-done` | ⬜ Not started |
+| 13 | AI API integration | both | `p13-done` | ✅ Done |
 
 Each practical is committed as one or more meaningful commits, then
 tagged (e.g. `git tag p1-done && git push origin p1-done`) so any past

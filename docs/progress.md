@@ -17,7 +17,7 @@ this is for your own reference and viva prep, not a report.
 | 10 | EventEmitter async | Done | 2026-10-21 | task-created/task-deleted events, delayed listeners, and error listener |
 | 11 | Docker + Compose | Done | 2026-10-21 | Frontend/backend Dockerfiles, Compose services, service networking, and Mongo volume |
 | 12 | CI/CD (GitHub Actions) | Done | 2026-10-22 | GitHub Actions backend tests and frontend build workflow |
-| 13 | AI API integration | Not started | | |
+| 13 | AI API integration | Done | 2026-10-22 | Backend AI description route, editable frontend suggestion, fallback, and rate limit |
 
 ## Evidence needed per rubric (don't lose these)
 
