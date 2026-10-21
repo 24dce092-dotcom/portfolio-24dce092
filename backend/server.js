@@ -1,9 +1,19 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const connectDB = require('./config/db');
+const taskRoutes = require('./routes/tasks');
+const authRoutes = require('./routes/auth');
+require('./listeners');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
+
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is missing. Add it to backend/.env and restart the server.');
+}
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -26,52 +36,8 @@ function requireJsonContent(req, res, next) {
   next();
 }
 
-// In-memory tasks store
-let tasks = [];
-let nextId = 1;
-
-app.get('/api/tasks', (req, res, next) => {
-  try {
-    res.json(tasks);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/api/tasks', requireJsonContent, (req, res, next) => {
-  try {
-    const { title, description } = req.body;
-    const task = { id: nextId++, title: title || 'Untitled', description: description || '', completed: false };
-    tasks.push(task);
-    res.status(201).json(task);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.put('/api/tasks/:id', requireJsonContent, (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return res.status(404).json({ error: 'Not found' });
-    Object.assign(task, req.body);
-    res.json(task);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.delete('/api/tasks/:id', (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const idx = tasks.findIndex((t) => t.id === id);
-    if (idx === -1) return res.status(404).json({ error: 'Not found' });
-    const [removed] = tasks.splice(idx, 1);
-    res.json(removed);
-  } catch (err) {
-    next(err);
-  }
-});
+app.use('/api/tasks', requireJsonContent, taskRoutes);
+app.use('/api/auth', requireJsonContent, authRoutes);
 
 // Serve frontend production build if available
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
@@ -94,9 +60,32 @@ app.get('*', (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(err.status || 500).json({ error: err.message || 'Something went wrong' });
+  let status = err.status || err.statusCode || 500;
+  let message = err.message || 'Something went wrong';
+
+  if (err.name === 'ValidationError') {
+    status = 400;
+    message = Object.values(err.errors)
+      .map((validationError) => validationError.message)
+      .join(', ');
+  } else if (err.name === 'CastError') {
+    status = 400;
+    message = 'Invalid task data';
+  } else if (err.code === 11000) {
+    status = 400;
+    message = 'A record with the same unique value already exists';
+  }
+
+  res.status(status).json({ error: message });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB connection failed:', err.message);
+    process.exitCode = 1;
+  });

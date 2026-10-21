@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Practical 9</title><style>
+@page{size:A4;margin:18mm 17mm}*{box-sizing:border-box}body{margin:0;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}.page{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-size:15px}h1{margin:52px 0 32px;text-align:center;font-size:25px;letter-spacing:1px}h2{margin:20px 0 12px;font-size:24px}h3{margin:20px 0 5px;font-family:Consolas,monospace;font-size:15px}p{margin:0 0 12px;text-align:justify}pre{margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 Consolas,'Courier New',monospace}.page-break{page-break-before:always}.placeholder{height:260px;margin:14px 0 24px;border:2px dashed #777;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:17px}.caption{text-align:center;font-size:13px;margin-top:-15px;margin-bottom:22px}.small{font-size:13px}.page-number{margin-top:28px;text-align:center;font-size:13px}
+</style></head>
+<body>
+<div class="page"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h1>PRACTICAL 9</h1>
+<h2>Aim :</h2><p>Implement server-side in-memory caching with node-cache for the Task Management API. Cache repeated task reads, invalidate cached data after POST, PUT, and DELETE operations, and compare cached and uncached response behavior.</p>
+<h2>Code :</h2><h3>backend/cache.js :-</h3><pre>const NodeCache = require('node-cache');
+
+const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
+const stats = { hits: 0, misses: 0 };
+
+function get(key) {
+  const value = cache.get(key);
+  if (value === undefined) {
+    stats.misses += 1;
+    return undefined;
+  }
+  stats.hits += 1;
+  return value;
+}
+
+function set(key, value) { cache.set(key, value); }
+
+function invalidateTaskCaches(id) {
+  cache.del('tasks:all');
+  if (id) cache.del(`tasks:${id}`);
+}
+
+function getStats() {
+  return { ...stats, keys: cache.keys(), ttlSeconds: 60 };
+}
+
+module.exports = { get, set, invalidateTaskCaches, getStats };</pre>
+<div class="page-number">1</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Code :</h2><h3>backend/routes/tasks.js :-</h3><pre>router.get('/', asyncHandler(async (req, res) => {
+  const cachedTasks = cache.get('tasks:all');
+  if (cachedTasks !== undefined) {
+    return res.status(200).json(cachedTasks);
+  }
+
+  const tasks = await Task.find().sort({ createdAt: -1 }).lean();
+  cache.set('tasks:all', tasks);
+  res.status(200).json(tasks);
+}));
+
+router.get('/cache/stats', (req, res) => {
+  res.status(200).json(cache.getStats());
+});
+
+router.get('/:id', ensureValidId, asyncHandler(async (req, res) => {
+  const cacheKey = `tasks:${req.params.id}`;
+  const cachedTask = cache.get(cacheKey);
+  if (cachedTask !== undefined) return res.status(200).json(cachedTask);
+
+  const task = await Task.findById(req.params.id).lean();
+  if (!task) return res.status(404).json({ error: 'Task not found' });
+  cache.set(cacheKey, task);
+  res.status(200).json(task);
+}));</pre>
+<h3>Cache invalidation :-</h3><pre>cache.invalidateTaskCaches();
+// after POST
+
+cache.invalidateTaskCaches(req.params.id);
+// after PUT and DELETE</pre>
+<div class="page-number">2</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Testing :</h2><pre>cd backend
+npm install
+npm run dev</pre><p>Use an authenticated Postman request with a Bearer token. Send GET `/api/tasks` three times, then send the same request again to observe cache hits. Use `/api/tasks/cache/stats` to view hit and miss counters.</p><h2>Output :</h2><p class="small">Replace the boxes with your screenshots. Do not include passwords or JWT values.</p><div class="placeholder">Paste screenshot: backend terminal showing<br>MongoDB connected and server running</div><div class="caption">Figure 1: Backend running with cache-enabled API</div><div class="placeholder">Paste screenshot: first GET /api/tasks<br>Status 200 and cache miss</div><div class="caption">Figure 2: First request loads data from MongoDB</div><div class="page-number">3</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Output :</h2><div class="placeholder">Paste screenshot: repeated GET /api/tasks<br>showing faster cached response</div><div class="caption">Figure 3: Cached GET response</div><div class="placeholder">Paste screenshot: GET /api/tasks/cache/stats<br>showing hits and misses</div><div class="caption">Figure 4: Cache statistics endpoint</div><div class="placeholder">Paste screenshot: POST, PUT, or DELETE followed by GET<br>showing updated data after invalidation</div><div class="caption">Figure 5: Cache invalidation after write</div><div class="page-number">4</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Result :</h2><p>In-memory caching was successfully added using node-cache with a 60-second TTL. All-task and single-task GET requests use stable cache keys, while POST, PUT, and DELETE operations invalidate stale cache entries. Cache statistics show hits and misses, and repeated reads can be compared against database-backed misses.</p><h2>Response-time table :</h2><pre>Condition       Reading 1       Reading 2       Reading 3
+Uncached        ____ ms         ____ ms         ____ ms
+Cached          ____ ms         ____ ms         ____ ms</pre><p class="small">Fill the measured values from Postman after testing.</p><div class="page-number">5</div></div>
+</body></html>

@@ -28,14 +28,14 @@ Compose, CI/CD) can reference both in one place.
 | 2 | Routing + useState | `frontend/` | `p2-done` | ⬜ Not started |
 | 3 | REST API consumption | `frontend/` | `p3-done` | ⬜ Not started |
 | 4 | Express REST API | `backend/` | `p4-done` | ⬜ Not started |
-| 5 | MongoDB + Mongoose | `backend/` | `p5-done` | ⬜ Not started |
-| 6 | Full-stack integration | both | `p6-done` | ⬜ Not started |
-| 7 | JWT auth + validation | `backend/` (+frontend) | `p7-done` | ⬜ Not started |
-| 8 | Lazy loading / perf | `frontend/` | `p8-done` | ⬜ Not started |
-| 9 | In-memory caching | `backend/` | `p9-done` | ⬜ Not started |
-| 10 | EventEmitter async | `backend/` | `p10-done` | ⬜ Not started |
-| 11 | Docker + Compose | root, both | `p11-done` | ⬜ Not started |
-| 12 | CI/CD (GitHub Actions) | `.github/workflows/` | `p12-done` | ⬜ Not started |
+| 5 | MongoDB + Mongoose | `backend/` | `p5-done` | ✅ Done |
+| 6 | Full-stack integration | both | `p6-done` | ✅ Done |
+| 7 | JWT auth + validation | `backend/` (+frontend) | `p7-done` | ✅ Done |
+| 8 | Lazy loading / perf | `frontend/` | `p8-done` | ✅ Done |
+| 9 | In-memory caching | `backend/` | `p9-done` | ✅ Done |
+| 10 | EventEmitter async | `backend/` | `p10-done` | ✅ Done |
+| 11 | Docker + Compose | root, both | `p11-done` | ✅ Done |
+| 12 | CI/CD (GitHub Actions) | `.github/workflows/` | `p12-done` | ✅ Done |
 | 13 | AI API integration | both | `p13-done` | ⬜ Not started |
 
 Each practical is committed as one or more meaningful commits, then

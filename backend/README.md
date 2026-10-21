@@ -1,6 +1,15 @@
 # Backend
 
-This is a minimal Express backend for the project. It provides a simple in-memory `/api/tasks` CRUD API and serves the frontend production build from `../frontend/dist`.
+This Express backend provides a MongoDB-backed `/api/tasks` CRUD API and serves the frontend production build from `../frontend/dist`.
+
+## Practical 5 setup
+
+1. Install dependencies with `npm install`.
+2. Copy `.env.example` to `.env`.
+3. Start MongoDB locally, or replace `MONGO_URI` with a MongoDB Atlas connection string.
+4. Run `npm run dev`.
+
+The task schema validates `title`, supplies defaults for `description`, `completed`, `priority`, and `createdAt`, and returns validation errors as JSON.
 
 Scripts:
 

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Practical 10</title><style>
+@page{size:A4;margin:18mm 17mm}*{box-sizing:border-box}body{margin:0;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}.page{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-size:15px}h1{margin:52px 0 32px;text-align:center;font-size:25px;letter-spacing:1px}h2{margin:20px 0 12px;font-size:24px}h3{margin:20px 0 5px;font-family:Consolas,monospace;font-size:15px}p{margin:0 0 12px;text-align:justify}pre{margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 Consolas,'Courier New',monospace}.page-break{page-break-before:always}.placeholder{height:270px;margin:14px 0 24px;border:2px dashed #777;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:17px}.caption{text-align:center;font-size:13px;margin-top:-15px;margin-bottom:22px}.small{font-size:13px}.page-number{margin-top:28px;text-align:center;font-size:13px}
+</style></head>
+<body>
+<div class="page"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h1>PRACTICAL 10</h1>
+<h2>Aim :</h2><p>Implement asynchronous background processing using Node.js native EventEmitter. When a task is created or deleted, emit an event handled by a notification listener without blocking the main API response.</p>
+<h2>Code :</h2><h3>backend/events.js :-</h3><pre>const EventEmitter = require('events');
+
+class TaskEvents extends EventEmitter {}
+
+module.exports = new TaskEvents();</pre>
+<h3>backend/listeners.js :-</h3><pre>const taskEvents = require('./events');
+
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+taskEvents.on('task-created', (task) => {
+  setImmediate(async () => {
+    try {
+      await delay(2000);
+      console.log(`[Notification] Task "${task.title}" created at ${new Date().toISOString()}`);
+    } catch (error) {
+      taskEvents.emit('error', error);
+    }
+  });
+});
+
+taskEvents.on('task-deleted', (task) => {
+  setImmediate(() => {
+    console.log(`[Notification] Task "${task.title}" deleted at ${new Date().toISOString()}`);
+  });
+});
+
+taskEvents.on('error', (error) => {
+  console.error(`[Notification error] ${error.message}`);
+});</pre>
+<div class="page-number">1</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Code :</h2><h3>backend/routes/tasks.js event usage :-</h3><pre>const taskEvents = require('../events');
+
+router.post('/', asyncHandler(async (req, res) => {
+  const task = await Task.create(req.body);
+  cache.invalidateTaskCaches();
+  res.status(201).json(task);
+  taskEvents.emit('task-created', task);
+}));
+
+router.delete('/:id', ensureValidId, asyncHandler(async (req, res) => {
+  const task = await Task.findByIdAndDelete(req.params.id);
+  if (!task) return res.status(404).json({ error: 'Task not found' });
+  cache.invalidateTaskCaches(req.params.id);
+  res.status(200).json(task);
+  taskEvents.emit('task-deleted', task);
+}));</pre>
+<h3>backend/server.js listener registration :-</h3><pre>const taskRoutes = require('./routes/tasks');
+const authRoutes = require('./routes/auth');
+require('./listeners');</pre>
+<h2>Event flow :</h2><pre>POST /api/tasks
+      |
+      v
+Save task to MongoDB
+      |
+      v
+Send 201 response immediately
+      |
+      v
+Emit task-created event
+      |
+      v
+Delayed notification listener</pre>
+<div class="page-number">2</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Testing :</h2><p>Use an authenticated POST request to create a task. Observe the API response timestamp and the delayed notification timestamp in the backend terminal.</p><pre>POST http://localhost:5500/api/tasks
+Authorization: Bearer &lt;JWT_TOKEN&gt;
+Content-Type: application/json
+
+{
+  "title": "EventEmitter demonstration",
+  "description": "Test asynchronous notification",
+  "priority": "medium"
+}</pre><h2>Output :</h2><p class="small">Replace the boxes with your actual screenshots. Hide passwords and JWT values.</p><div class="placeholder">Paste screenshot: Postman create-task request<br>Status 201 returned immediately</div><div class="caption">Figure 1: API response after task creation</div><div class="placeholder">Paste screenshot: terminal showing<br>[API] response before delayed notification</div><div class="caption">Figure 2: Response-before-handler timestamp evidence</div><div class="page-number">3</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Output :</h2><div class="placeholder">Paste screenshot: terminal showing<br>task-created notification after approximately 2 seconds</div><div class="caption">Figure 3: Asynchronous task-created listener</div><div class="placeholder">Paste screenshot: delete request and terminal<br>showing task-deleted notification</div><div class="caption">Figure 4: task-deleted event listener</div><div class="placeholder">Paste screenshot: error listener output if a notification error is simulated</div><div class="caption">Figure 5: Event error handling</div><div class="page-number">4</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Result :</h2><p>An EventEmitter-based asynchronous notification system was successfully implemented. Task-created and task-deleted events are emitted after the API response, and listeners process notifications without blocking the request-response cycle. The error listener handles notification failures safely.</p><h2>Expected log order :</h2><pre>[API] Response sent at 2026-10-21T...
+[Notification] Task "EventEmitter demonstration" created at 2026-10-21T...  (about 2 seconds later)</pre><div class="page-number">5</div></div>
+</body></html>

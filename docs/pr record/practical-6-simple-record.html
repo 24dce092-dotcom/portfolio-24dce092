@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Practical 6</title>
+  <style>
+    @page { size: A4; margin: 18mm 17mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #111; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; line-height: 1.45; }
+    .page { max-width: 850px; margin: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 15px; }
+    h1 { margin: 52px 0 32px; text-align: center; font-size: 25px; letter-spacing: 1px; }
+    h2 { margin: 20px 0 12px; font-size: 24px; }
+    h3 { margin: 20px 0 5px; font-family: Consolas, monospace; font-size: 15px; }
+    p { margin: 0 0 12px; text-align: justify; }
+    pre { margin: 0 0 18px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.5 Consolas, 'Courier New', monospace; }
+    .page-break { page-break-before: always; }
+    .placeholder { height: 265px; margin: 14px 0 24px; border: 2px dashed #777; display: flex; align-items: center; justify-content: center; text-align: center; color: #555; font-size: 17px; }
+    .placeholder.tall { height: 365px; }
+    .caption { text-align: center; font-size: 13px; margin-top: -15px; margin-bottom: 22px; }
+    .small { font-size: 13px; }
+    .page-number { margin-top: 28px; text-align: center; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+    <h1>PRACTICAL 6</h1>
+    <h2>Aim :</h2>
+    <p>Connect the React frontend to the Node.js, Express, and MongoDB backend. Implement a complete task workflow in the React interface so users can create, view, update, and delete tasks through API calls, with loading and error handling for every operation.</p>
+    <h2>Code :</h2>
+    <h3>frontend/vite.config.js :-</h3>
+    <pre>import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig(({ mode }) => {
+  const apiTarget = process.env.BACKEND_URL || 'http://localhost:5500';
+  return {
+    plugins: [react()],
+    server: {
+      proxy: {
+        '/api': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: false
+        }
+      }
+    }
+  };
+});</pre>
+    <h3>frontend/src/api.js :-</h3>
+    <pre>const API_BASE = import.meta.env.VITE_API_BASE || '/api';
+
+async function request(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    ...options
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+export const getTasks = () => request('/tasks');
+export const createTask = (task) => request('/tasks', {
+  method: 'POST', body: JSON.stringify(task)
+});
+export const updateTask = (id, task) => request(`/tasks/${id}`, {
+  method: 'PUT', body: JSON.stringify(task)
+});
+export const deleteTask = (id) => request(`/tasks/${id}`, { method: 'DELETE' });</pre>
+    <div class="page-number">1</div>
+  </div>
+
+  <div class="page page-break">
+    <div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+    <h2>Code :</h2>
+    <h3>frontend/src/pages/Projects.jsx :-</h3>
+    <pre>import { useEffect, useState } from 'react';
+import Spinner from '../components/Spinner';
+import ErrorMessage from '../components/ErrorMessage';
+import { createTask, deleteTask, getTasks, updateTask } from '../api';
+
+export default function Projects() {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  function fetchTasks() {
+    setLoading(true);
+    setError(null);
+    getTasks().then(setTasks)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => { fetchTasks(); }, []);
+
+  function handleCreate(event) {
+    event.preventDefault();
+    setSaving(true);
+    createTask({ title, description, priority })
+      .then((task) => setTasks((current) => [task, ...current]))
+      .catch((err) => setActionError(err.message))
+      .finally(() => setSaving(false));
+  }
+
+  function saveEdit(id) {
+    setSaving(true);
+    updateTask(id, { title: editTitle, description: editDescription })
+      .then((task) => setTasks((current) => current.map((item) =>
+        item._id === id ? task : item)))
+      .catch((err) => setActionError(err.message))
+      .finally(() => setSaving(false));
+  }
+
+  function handleDelete(id) {
+    if (!window.confirm('Delete this task?')) return;
+    setSaving(true);
+    deleteTask(id)
+      .then(() => setTasks((current) => current.filter((task) => task._id !== id)))
+      .catch((err) => setActionError(err.message))
+      .finally(() => setSaving(false));
+  }
+
+  return (
+    <section>
+      <h2>Projects / Tasks</h2>
+      {/* Form, loading/error states, task list, edit, complete, and delete controls */}
+    </section>
+  );
+}</pre>
+    <h3>Backend API used :-</h3>
+    <pre>GET    /api/tasks       - read all tasks
+POST   /api/tasks       - create a task
+PUT    /api/tasks/:id   - update a task
+DELETE /api/tasks/:id   - delete a task</pre>
+    <div class="page-number">2</div>
+  </div>
+
+  <div class="page page-break">
+    <div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+    <h2>Testing :</h2>
+    <p>Run both applications in separate terminals. The backend must be connected to MongoDB before the frontend sends task requests.</p>
+    <pre>Terminal 1:
+cd backend
+npm run dev
+
+Terminal 2:
+cd frontend
+npm run dev</pre>
+    <h2>Output :</h2>
+    <p class="small">Replace the boxes below with your actual screenshots. Do not include passwords or private connection strings.</p>
+    <div class="placeholder">Paste screenshot: backend terminal showing<br>MongoDB connected and Server running on port 5500</div>
+    <div class="caption">Figure 1: Backend and MongoDB running</div>
+    <div class="placeholder">Paste screenshot: React Projects page showing<br>task creation form and loaded tasks</div>
+    <div class="caption">Figure 2: React task interface connected to the backend</div>
+    <div class="page-number">3</div>
+  </div>
+
+  <div class="page page-break">
+    <div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+    <h2>Output :</h2>
+    <div class="placeholder">Paste screenshot: create task operation<br>new task appears without refreshing the page</div>
+    <div class="caption">Figure 3: Create operation</div>
+    <div class="placeholder">Paste screenshot: edit or mark-complete operation<br>updated task appears in the React list</div>
+    <div class="caption">Figure 4: Update operation</div>
+    <div class="placeholder">Paste screenshot: delete confirmation and task removed<br>from the React list</div>
+    <div class="caption">Figure 5: Delete operation</div>
+    <div class="page-number">4</div>
+  </div>
+
+  <div class="page page-break">
+    <div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+    <h2>Output :</h2>
+    <div class="placeholder">Paste screenshot: refresh the browser after creating a task<br>task remains visible from MongoDB</div>
+    <div class="caption">Figure 6: Persistence after browser refresh</div>
+    <div class="placeholder">Paste screenshot: browser console or Network tab<br>showing successful /api/tasks requests without CORS errors</div>
+    <div class="caption">Figure 7: API communication and error-free integration</div>
+    <h2>Result :</h2>
+    <p>The React frontend was successfully integrated with the Express and MongoDB backend. Tasks can be created, read, updated, and deleted from the user interface. The UI displays loading and error states for API operations, updates its state from server responses, and retains task data after refreshing the browser.</p>
+    <div class="page-number">5</div>
+  </div>
+</body>
+</html>

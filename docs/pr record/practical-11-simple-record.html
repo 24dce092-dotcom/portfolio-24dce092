@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Practical 11</title><style>
+@page{size:A4;margin:18mm 17mm}*{box-sizing:border-box}body{margin:0;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}.page{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-size:15px}h1{margin:52px 0 32px;text-align:center;font-size:25px;letter-spacing:1px}h2{margin:20px 0 12px;font-size:24px}h3{margin:20px 0 5px;font-family:Consolas,monospace;font-size:15px}p{margin:0 0 12px;text-align:justify}pre{margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 Consolas,'Courier New',monospace}.page-break{page-break-before:always}.placeholder{height:260px;margin:14px 0 24px;border:2px dashed #777;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:17px}.caption{text-align:center;font-size:13px;margin-top:-15px;margin-bottom:22px}.small{font-size:13px}.page-number{margin-top:28px;text-align:center;font-size:13px}
+</style></head>
+<body>
+<div class="page"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h1>PRACTICAL 11</h1>
+<h2>Aim :</h2><p>Containerize the React frontend, Express backend, and MongoDB database using Docker and Docker Compose. Configure service networking, correct port mappings, a persistent MongoDB volume, and a single-command full-stack startup.</p>
+<h2>Code :</h2><h3>backend/Dockerfile :-</h3><pre>FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+ENV NODE_ENV=production
+EXPOSE 5500
+CMD ["node", "server.js"]</pre>
+<h3>frontend/Dockerfile :-</h3><pre>FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+ARG VITE_API_BASE=http://localhost:5500/api
+ENV VITE_API_BASE=$VITE_API_BASE
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app ./
+EXPOSE 5173
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "5173"]</pre>
+<div class="page-number">1</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Code :</h2><h3>docker-compose.yml :-</h3><pre>services:
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build: ./backend
+    environment:
+      PORT: 5500
+      MONGO_URI: mongodb://mongodb:27017/awd_task_manager
+      JWT_SECRET: awd-practical-11-compose-secret
+    ports:
+      - "5500:5500"
+    depends_on:
+      - mongodb
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: http://localhost:5500/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:</pre>
+<h3>Run command :-</h3><pre>docker compose up --build</pre>
+<h3>Verify containers :-</h3><pre>docker ps</pre>
+<div class="page-number">2</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Testing :</h2><p>Run Docker Desktop first, then execute the Compose command from the project root.</p><pre>cd "C:\Users\patel\OneDrive\Documents\SEM 5\AWD"
+docker compose up --build</pre><h2>Output :</h2><p class="small">Replace the boxes with your actual Docker screenshots.</p><div class="placeholder">Paste screenshot: docker --version and<br>docker compose version</div><div class="caption">Figure 1: Docker environment verification</div><div class="placeholder">Paste screenshot: docker compose up --build<br>showing mongodb, backend, and frontend startup</div><div class="caption">Figure 2: Full-stack Compose startup</div><div class="page-number">3</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Output :</h2><div class="placeholder">Paste screenshot: docker ps<br>showing all three running containers</div><div class="caption">Figure 3: Running Compose services</div><div class="placeholder">Paste screenshot: browser at<br>http://localhost:5173</div><div class="caption">Figure 4: Containerized React frontend</div><div class="placeholder">Paste screenshot: MongoDB Compass showing<br>awd_task_manager and tasks collection</div><div class="caption">Figure 5: Persistent MongoDB data</div><div class="page-number">4</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Result :</h2><p>The full-stack application was containerized using Docker and Docker Compose. The frontend, backend, and MongoDB services communicate through the Compose network. MongoDB data is persisted using a named volume, and the complete application can be started with one command.</p><h2>Important observation :</h2><p>The backend connects to MongoDB using the Compose service name <code>mongodb</code>, not <code>localhost</code>, because each service runs inside its own container.</p><div class="page-number">5</div></div>
+</body></html>

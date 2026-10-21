@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><title>Practical 7</title>
+<style>
+@page{size:A4;margin:18mm 17mm}*{box-sizing:border-box}body{margin:0;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}.page{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-size:15px}h1{margin:52px 0 32px;text-align:center;font-size:25px;letter-spacing:1px}h2{margin:20px 0 12px;font-size:24px}h3{margin:20px 0 5px;font-family:Consolas,monospace;font-size:15px}p{margin:0 0 12px;text-align:justify}pre{margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 Consolas,'Courier New',monospace}.page-break{page-break-before:always}.placeholder{height:265px;margin:14px 0 24px;border:2px dashed #777;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:17px}.caption{text-align:center;font-size:13px;margin-top:-15px;margin-bottom:22px}.small{font-size:13px}.page-number{margin-top:28px;text-align:center;font-size:13px}
+</style></head>
+<body>
+<div class="page"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h1>PRACTICAL 7</h1>
+<h2>Aim :</h2><p>Implement JWT-based authentication and server-side input validation in the Express middleware pipeline. Users must be able to register and log in securely, passwords must be hashed with bcrypt, and task routes must reject requests without a valid JWT.</p>
+<h2>Code :</h2>
+<h3>backend/models/User.js :-</h3><pre>const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Enter a valid email address']
+  },
+  password: { type: String, required: true, minlength: 6 }
+}, { timestamps: true });
+
+module.exports = mongoose.model('User', userSchema);</pre>
+<h3>backend/middleware/auth.js :-</h3><pre>const jwt = require('jsonwebtoken');
+
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'Authorization token required' });
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+module.exports = requireAuth;</pre>
+<div class="page-number">1</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Code :</h2><h3>backend/routes/auth.js :-</h3><pre>router.post('/register', asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  const existingUser = await User.findOne({ email: email?.toLowerCase().trim() });
+  if (existingUser) return res.status(409).json({ error: 'Email is already registered' });
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await User.create({ name, email, password: hashedPassword });
+  res.status(201).json({ user, token: createToken(user) });
+}));
+
+router.post('/login', asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email: email?.toLowerCase().trim() });
+  const matches = user && await bcrypt.compare(password || '', user.password);
+  if (!matches) return res.status(401).json({ error: 'Invalid email or password' });
+  res.status(200).json({ user, token: createToken(user) });
+}));</pre>
+<h3>backend/routes/tasks.js :-</h3><pre>const requireAuth = require('../middleware/auth');
+const router = express.Router();
+router.use(requireAuth);
+
+router.get('/', asyncHandler(async (req, res) => {
+  const tasks = await Task.find().sort({ createdAt: -1 });
+  res.status(200).json(tasks);
+}));</pre>
+<h3>Protected request header :-</h3><pre>Authorization: Bearer &lt;JWT_TOKEN&gt;</pre>
+<div class="page-number">2</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Testing :</h2><p>Start the backend and frontend in separate terminals. Use Postman or the React interface to test registration, login, and protected task requests.</p><pre>cd backend
+npm run dev
+
+cd frontend
+npm run dev</pre>
+<h2>Output :</h2><p class="small">Replace the boxes with your own screenshots. Do not show passwords or JWT values in full.</p>
+<div class="placeholder">Paste screenshot: Postman POST /api/auth/register<br>Status 201 Created<br>User created and token returned</div><div class="caption">Figure 1: User registration with hashed password storage</div>
+<div class="placeholder">Paste screenshot: Postman POST /api/auth/login<br>Status 200 OK<br>JWT token returned</div><div class="caption">Figure 2: User login and JWT generation</div>
+<div class="page-number">3</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Output :</h2>
+<div class="placeholder">Paste screenshot: GET /api/tasks without Authorization header<br>Status 401 Unauthorized</div><div class="caption">Figure 3: Protected route rejects unauthenticated request</div>
+<div class="placeholder">Paste screenshot: GET or POST /api/tasks with Bearer token<br>Status 200 or 201 and task response</div><div class="caption">Figure 4: Protected route accepts valid JWT</div>
+<div class="placeholder">Paste screenshot: React Projects page showing<br>Register/Login form and authenticated task list</div><div class="caption">Figure 5: Frontend authentication flow</div>
+<div class="page-number">4</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Output :</h2><div class="placeholder">Paste screenshot: invalid registration data<br>Status 400 with validation message</div><div class="caption">Figure 6: Server-side validation response</div>
+<div class="placeholder">Paste screenshot: GET /api/auth/me with Bearer token<br>Status 200 and logged-in user details</div><div class="caption">Figure 7: Current user endpoint</div>
+<h2>Result :</h2><p>JWT authentication was successfully added to the Task Management application. Passwords are hashed with bcrypt before storage, login returns a signed token with a one-hour expiry, and all task routes reject missing or invalid tokens. Server-side validation returns structured JSON errors for malformed input.</p>
+<div class="page-number">5</div></div>
+</body></html>

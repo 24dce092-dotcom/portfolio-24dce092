@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><title>Practical 8</title>
+<style>
+@page{size:A4;margin:18mm 17mm}*{box-sizing:border-box}body{margin:0;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}.page{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-size:15px}h1{margin:52px 0 32px;text-align:center;font-size:25px;letter-spacing:1px}h2{margin:20px 0 12px;font-size:24px}h3{margin:20px 0 5px;font-family:Consolas,monospace;font-size:15px}p{margin:0 0 12px;text-align:justify}pre{margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 Consolas,'Courier New',monospace}.page-break{page-break-before:always}.placeholder{height:265px;margin:14px 0 24px;border:2px dashed #777;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:17px}.caption{text-align:center;font-size:13px;margin-top:-15px;margin-bottom:22px}.small{font-size:13px}.page-number{margin-top:28px;text-align:center;font-size:13px}
+</style></head>
+<body>
+<div class="page"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h1>PRACTICAL 8</h1>
+<h2>Aim :</h2><p>Improve React frontend performance using route-based lazy loading and code splitting. Load page components only when their routes are visited, provide a Suspense fallback while a chunk loads, and compare the build output before and after optimization.</p>
+<h2>Code :</h2>
+<h3>frontend/src/App.jsx :-</h3><pre>import { lazy, Suspense, useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+
+const Home = lazy(() => import('./pages/Home'));
+const Projects = lazy(() => import('./pages/Projects'));
+const Contact = lazy(() => import('./pages/Contact'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+function App() {
+  const skillList = ['React', 'Node.js', 'Express', 'MongoDB', 'JavaScript'];
+
+  return (
+    <div className="app-root">
+      {/* Header and navigation remain available immediately. */}
+      <main>
+        <Suspense fallback={<div role="status">Loading page...</div>}>
+          <Routes>
+            <Route path="/" element={<Home skillList={skillList} />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
+export default App;</pre>
+<div class="page-number">1</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Implementation :</h2><h3>frontend/src/App.css :-</h3><pre>.route-loading {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+}</pre>
+<h3>Build commands :-</h3><pre>cd frontend
+npm run build
+npm run dev</pre>
+<h3>Code-splitting behavior :-</h3><pre>Initial bundle: shared application code
+Home chunk: loaded when / is visited
+Projects chunk: loaded when /projects is visited
+Contact chunk: loaded when /contact is visited
+NotFound chunk: loaded when an unknown route is visited</pre>
+<h2>Output :</h2><p class="small">Replace the boxes with your own screenshots. Record the baseline before optimization and the separate chunks after optimization.</p>
+<div class="placeholder">Paste screenshot: baseline npm run build output<br>before React.lazy implementation</div><div class="caption">Figure 1: Baseline bundle output</div>
+<div class="page-number">2</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Output :</h2>
+<div class="placeholder">Paste screenshot: npm run build output<br>showing Home, Projects, Contact, and NotFound chunks</div><div class="caption">Figure 2: Code-split build output</div>
+<div class="placeholder">Paste screenshot: DevTools Network tab<br>showing a page chunk loaded after opening /projects</div><div class="caption">Figure 3: Lazy-loaded route chunk</div>
+<div class="page-number">3</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div>
+<h2>Output :</h2>
+<div class="placeholder">Paste screenshot: application opening /projects<br>with Network tab filtered to Fetch/XHR or JS</div><div class="caption">Figure 4: Route navigation and chunk request</div>
+<div class="placeholder">Paste screenshot: Suspense fallback<br>visible while a route chunk is loading under Slow 3G</div><div class="caption">Figure 5: Loading fallback UI</div>
+<h2>Result :</h2><p>Route-based code splitting was implemented successfully with React.lazy and Suspense. The build generated separate chunks for the route pages, reducing the initial JavaScript bundle and loading page code only when needed. A loading fallback is displayed while a lazy route is being downloaded.</p>
+<div class="page-number">4</div></div>
+</body></html>

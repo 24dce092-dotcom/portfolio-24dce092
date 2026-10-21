@@ -9,14 +9,14 @@ this is for your own reference and viva prep, not a report.
 | 2 | Routing + useState | Not started | | |
 | 3 | REST API consumption | Not started | | |
 | 4 | Express REST API | Not started | | |
-| 5 | MongoDB + Mongoose | Not started | | |
-| 6 | Full-stack integration | Not started | | |
-| 7 | JWT auth + validation | Not started | | |
-| 8 | Lazy loading / perf | Not started | | |
-| 9 | In-memory caching | Not started | | |
-| 10 | EventEmitter async | Not started | | |
-| 11 | Docker + Compose | Not started | | |
-| 12 | CI/CD (GitHub Actions) | Not started | | |
+| 5 | MongoDB + Mongoose | Done | 2026-09-24 | Task schema, MongoDB connection, Mongoose CRUD, validation, and GET by id |
+| 6 | Full-stack integration | Done | 2026-09-24 | React task CRUD, API helper, proxy, loading/error states, and persistence flow |
+| 7 | JWT auth + validation | Done | 2026-09-25 | bcrypt registration/login, JWT middleware, protected tasks, and auth UI |
+| 8 | Lazy loading / perf | Done | 2026-10-21 | React.lazy route chunks and Suspense fallback |
+| 9 | In-memory caching | Done | 2026-10-21 | node-cache caching, invalidation, and hit/miss stats |
+| 10 | EventEmitter async | Done | 2026-10-21 | task-created/task-deleted events, delayed listeners, and error listener |
+| 11 | Docker + Compose | Done | 2026-10-21 | Frontend/backend Dockerfiles, Compose services, service networking, and Mongo volume |
+| 12 | CI/CD (GitHub Actions) | Done | 2026-10-22 | GitHub Actions backend tests and frontend build workflow |
 | 13 | AI API integration | Not started | | |
 
 ## Evidence needed per rubric (don't lose these)

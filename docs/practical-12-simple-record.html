@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Practical 12</title><style>
+@page{size:A4;margin:18mm 17mm}*{box-sizing:border-box}body{margin:0;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}.page{max-width:850px;margin:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;font-size:15px}h1{margin:52px 0 32px;text-align:center;font-size:25px;letter-spacing:1px}h2{margin:20px 0 12px;font-size:24px}h3{margin:20px 0 5px;font-family:Consolas,monospace;font-size:15px}p{margin:0 0 12px;text-align:justify}pre{margin:0 0 18px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 Consolas,'Courier New',monospace}.page-break{page-break-before:always}.placeholder{height:270px;margin:14px 0 24px;border:2px dashed #777;display:flex;align-items:center;justify-content:center;text-align:center;color:#555;font-size:17px}.caption{text-align:center;font-size:13px;margin-top:-15px;margin-bottom:22px}.small{font-size:13px}.page-number{margin-top:28px;text-align:center;font-size:13px}
+</style></head>
+<body>
+<div class="page"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h1>PRACTICAL 12</h1>
+<h2>Aim :</h2><p>Set up a GitHub Actions CI/CD pipeline for the Task Management application. The pipeline must install dependencies, run automated backend tests, build the frontend, and report a clear pass or fail result on pushes and pull requests targeting the main branch.</p>
+<h2>Code :</h2><h3>.github/workflows/ci.yml :-</h3><pre>name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build</pre>
+<div class="page-number">1</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Code :</h2><h3>backend/package.json test script :-</h3><pre>"scripts": {
+  "test": "jest --runInBand"
+}</pre><h3>backend/test/cache.test.js :-</h3><pre>const cache = require('../cache');
+
+describe('task cache', () => {
+  beforeEach(() => {
+    cache.invalidateTaskCaches();
+  });
+
+  test('stores and returns a cached value', () => {
+    const tasks = [{ _id: 'task-1', title: 'CI task' }];
+    cache.set('tasks:all', tasks);
+    expect(cache.get('tasks:all')).toEqual(tasks);
+  });
+
+  test('invalidates collection and single-task keys', () => {
+    cache.set('tasks:all', [{ _id: 'task-1' }]);
+    cache.set('tasks:task-1', { _id: 'task-1' });
+    cache.invalidateTaskCaches('task-1');
+    expect(cache.get('tasks:all')).toBeUndefined();
+    expect(cache.get('tasks:task-1')).toBeUndefined();
+  });
+});</pre><h2>Local testing :</h2><pre>cd backend
+npm install
+npm test
+
+cd frontend
+npm install
+npm run build</pre><div class="page-number">2</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Testing :</h2><p>Push the workflow to GitHub on the main branch or create a pull request targeting main. Open the repository's Actions tab to view the workflow jobs.</p><h2>Output :</h2><p class="small">Replace the boxes with your real GitHub Actions screenshots.</p><div class="placeholder">Paste screenshot: GitHub Actions failed run<br>showing a deliberately broken test and red failure status</div><div class="caption">Figure 1: Failed CI pipeline demonstration</div><div class="placeholder">Paste screenshot: GitHub Actions passed run<br>showing backend-test and frontend-build completed successfully</div><div class="caption">Figure 2: Fixed CI pipeline demonstration</div><div class="page-number">3</div></div>
+
+<div class="page page-break"><div class="header"><span>Advanced Web Development Frameworks (ITUE301)</span><span>24DCE092</span></div><h2>Output :</h2><div class="placeholder">Paste screenshot: backend-test job logs<br>showing npm ci and npm test</div><div class="caption">Figure 3: Automated backend test job</div><div class="placeholder">Paste screenshot: frontend-build job logs<br>showing npm ci and npm run build</div><div class="caption">Figure 4: Automated frontend build job</div><h2>Result :</h2><p>The GitHub Actions CI pipeline was successfully configured. Backend tests and the frontend production build run automatically on pushes and pull requests targeting main. The workflow reports clear pass or fail status and catches regressions before integration.</p><div class="page-number">4</div></div>
+</body></html>

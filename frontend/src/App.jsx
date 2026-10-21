@@ -1,13 +1,14 @@
 import Header from './components/Header';
 import Footer from './components/Footer';
 import NavBar from './components/NavBar';
-import Home from './pages/Home';
-import Projects from './pages/Projects';
-import Contact from './pages/Contact';
-import NotFound from './pages/NotFound';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
-import { useState, useEffect } from 'react';
+
+const Home = lazy(() => import('./pages/Home'));
+const Projects = lazy(() => import('./pages/Projects'));
+const Contact = lazy(() => import('./pages/Contact'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function App() {
   const skillList = ['React', 'Node.js', 'Express', 'MongoDB', 'JavaScript'];
@@ -38,12 +39,14 @@ function App() {
       <Header name="Kalp Patel" themeColor="#2563eb" />
       <NavBar onToggleTheme={toggleTheme} theme={theme} />
       <main>
-        <Routes>
-          <Route path="/" element={<Home skillList={skillList} />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<div className="route-loading" role="status">Loading page...</div>}>
+          <Routes>
+            <Route path="/" element={<Home skillList={skillList} />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
       <Footer />
     </div>
