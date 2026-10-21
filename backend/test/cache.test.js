@@ -10,7 +10,7 @@ describe('task cache', () => {
 
     cache.set('tasks:all', tasks);
 
-    expect(cache.get('tasks:all')).toEqual([]);
+    expect(cache.get('tasks:all')).toEqual(tasks);
   });
 
   test('invalidates the collection and single-task keys', () => {
